@@ -1,47 +1,91 @@
-# Snake Game with Power-ups
+# Neon Serpent 🐍 — Snake, rebuilt for the cloud
 
-A classic Snake game built with Python and Pygame featuring colorful foods with special power-ups!
+The original pygame snake (now in [`legacy/`](legacy/)) reborn as a
+TypeScript + HTML5 Canvas game, containerized and ready to run **warm** on the
+[Diixtra forge](https://github.com/Diixtra/diixtra-forge) via a Crossplane
+`WarmWebApp` claim.
+
+## Play
+
+Arrows / WASD to move · `P` pause · `M` mute · `R` restart.
 
 ## Features
 
-- **Colorful Foods with Power-ups:**
-  - 🔴 Red (Normal): Standard growth + 10 points
-  - 🔵 Blue (Speed): Speed boost for 5 seconds + 10 points
-  - 🟢 Green (Double): Double points (20 points)
-  - 🟡 Yellow (Invincible): Temporary invincibility for 3 seconds + 10 points
+**Everything the original had** — red/blue/green/gold foods with speed boost,
+double points, and invincibility (walls become wrap-around while it lasts) —
+plus:
 
-- **Visual Effects:**
-  - Snake turns purple when invincible
-  - Power-up status displayed on screen
-  - Real-time score tracking
+- ✨ **Neon glow rendering** — gradient snake with eyes, pulsing food, animated
+  grid, rainbow shimmer while invincible
+- 💥 **Juice** — particle bursts, floating score popups, screen shake,
+  synthesized WebAudio sound (no asset files)
+- 🔥 **Combo streaks** — eat again within ~4 seconds to stack up to a ×5
+  multiplier; the eat sound pitches up with your streak
+- ⭐ **Bonus stars** — rare spinning stars worth 50 × combo, gone in 8 seconds
+- 🧠 **Code-to-continue** — see below
 
-## Installation
+## Die? Solve code to live.
 
-1. Install pygame:
+When you crash, you get **one coding problem** and a timer. Solve it and you
+respawn (at half length — continues aren't free). Fail, and the run ends.
+
+- Difficulty scales with how big your snake was when it died:
+
+  | Tier | Snake length | Timer |
+  |---|---|---|
+  | ROOKIE | < 8 | 30s |
+  | CODER | 8–13 | 40s |
+  | HACKER | 14–21 | 50s |
+  | ARCHITECT | 22+ | 60s |
+
+- Each tier has its own pool of problems (JavaScript, Python, and CS theory),
+  drawn shuffle-bag style so you **never see the same problem twice** until a
+  pool is exhausted.
+- Answers are normalized (case, whitespace, brackets), so `[2, 4, 6]` and
+  `2,4,6` both count.
+- You can earn unlimited continues — if you can keep answering.
+
+## Develop
+
 ```bash
-pip install -r requirements.txt
+cd web
+npm install
+npm run dev        # http://localhost:8000 with rebuild-on-save
+npm run typecheck
+npm run build      # bundle into web/dist/
 ```
 
-## How to Play
+## Run the container
 
-1. Run the game:
 ```bash
-python snake_game.py
+docker build -t snake-game .
+docker run -p 8080:8080 snake-game
+# open http://localhost:8080  (health: /healthz)
 ```
 
-2. Use arrow keys to control the snake:
-   - ↑ Up Arrow
-   - ↓ Down Arrow  
-   - ← Left Arrow
-   - → Right Arrow
+Non-root nginx-alpine serving the static bundle; CI
+(`.github/workflows/build-image.yaml`) publishes
+`ghcr.io/jameskazie/snake-game` on pushes to `main`.
 
-3. Eat different colored foods to grow and gain power-ups!
+## Deploy to the cloud (Diixtra forge, warm, Crossplane)
 
-## Power-up Effects
+See [`deploy/README.md`](deploy/README.md). Short version: a
+`WarmWebApp` XRD/Composition (in the forge's `diixtra.io/v1alpha1` style)
+composes the Deployment, Service, Traefik IngressRoute, and a KEDA scaler with
+a **warm replica floor** — the game can scale up under load but never scales
+to zero, so it always loads instantly:
 
-- **Speed Boost (Blue)**: Snake moves faster for 5 seconds
-- **Invincible (Yellow)**: Snake can pass through walls and itself for 3 seconds
-- **Double Points (Green)**: Get 20 points instead of 10
-- **Normal (Red)**: Standard gameplay
+```yaml
+apiVersion: diixtra.io/v1alpha1
+kind: WarmWebApp
+metadata:
+  name: snake-game
+  namespace: apps
+spec:
+  image: ghcr.io/jameskazie/snake-game:latest
+  host: snake.diixtra.com
+  warmReplicas: 1
+```
 
-Have fun reliving your childhood memories! 🐍
+A plain kustomize variant matching the forge's `apps/base` + `apps/homelab`
+layout is included as a fallback.
