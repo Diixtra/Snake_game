@@ -31,6 +31,14 @@ const DIRS: Record<string, { x: number; y: number }> = {
   KeyD: { x: 1, y: 0 },
 };
 
+const muteBtn = document.getElementById('btn-mute')!;
+const toggleMute = () => {
+  muteBtn.textContent = game.sfx.toggleMute() ? '🔇' : '🔊';
+};
+// Never restart out from under the death animation or an open quiz.
+const canRestart = () =>
+  game.state === 'gameover' || game.state === 'playing' || game.state === 'paused';
+
 window.addEventListener('keydown', (e) => {
   game.sfx.unlock();
   const dir = DIRS[e.code];
@@ -41,8 +49,64 @@ window.addEventListener('keydown', (e) => {
     return;
   }
   if (e.code === 'KeyP') game.togglePause();
-  if (e.code === 'KeyM') game.sfx.toggleMute();
-  if (e.code === 'KeyR' && (game.state === 'gameover' || game.state === 'playing')) game.reset();
+  if (e.code === 'KeyM') toggleMute();
+  if (e.code === 'KeyR' && canRestart()) game.reset();
+});
+
+muteBtn.addEventListener('click', () => {
+  game.sfx.unlock();
+  toggleMute();
+});
+document.getElementById('btn-restart')!.addEventListener('click', () => {
+  game.sfx.unlock();
+  if (game.state === 'title') game.reset();
+  else if (canRestart()) game.reset();
+});
+
+// ---- touch: swipe anywhere on the canvas to steer, tap to start/pause ----
+const SWIPE_PX = 24;
+let anchor: { x: number; y: number } | null = null;
+let swiped = false;
+
+canvas.addEventListener(
+  'touchstart',
+  (e) => {
+    game.sfx.unlock();
+    const t = e.touches[0];
+    anchor = { x: t.clientX, y: t.clientY };
+    swiped = false;
+  },
+  { passive: true }
+);
+
+canvas.addEventListener(
+  'touchmove',
+  (e) => {
+    e.preventDefault();
+    if (!anchor) return;
+    const t = e.touches[0];
+    const dx = t.clientX - anchor.x;
+    const dy = t.clientY - anchor.y;
+    if (Math.abs(dx) < SWIPE_PX && Math.abs(dy) < SWIPE_PX) return;
+    const dir =
+      Math.abs(dx) > Math.abs(dy)
+        ? { x: Math.sign(dx), y: 0 }
+        : { x: 0, y: Math.sign(dy) };
+    if (game.state === 'title') game.reset();
+    game.queueDirection(dir);
+    // Re-anchor so a finger can chain turns without lifting.
+    anchor = { x: t.clientX, y: t.clientY };
+    swiped = true;
+  },
+  { passive: false }
+);
+
+canvas.addEventListener('touchend', () => {
+  if (!swiped && anchor) {
+    if (game.state === 'title' || game.state === 'gameover') game.reset();
+    else if (game.state === 'playing' || game.state === 'paused') game.togglePause();
+  }
+  anchor = null;
 });
 
 let last = performance.now();

@@ -19,6 +19,7 @@
     html, body {
       margin: 0;
       height: 100%;
+      touch-action: manipulation; /* no double-tap zoom on buttons */
       background:
         radial-gradient(1200px 600px at 50% -10%, #101a33 0%, var(--bg) 60%);
       color: var(--text);
@@ -54,12 +55,28 @@
       background: #04060c;
       max-width: calc(100vw - 40px);
       max-height: calc(100vh - 140px);
+      touch-action: none; /* swipes steer the snake, never scroll the page */
     }
     #help {
+      display: flex;
+      align-items: center;
+      gap: 10px;
       font-size: 12px;
-      opacity: 0.65;
+      opacity: 0.75;
       letter-spacing: 1px;
+      padding: 0 16px;
+      text-align: center;
     }
+    .ctl {
+      padding: 3px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(90, 215, 255, 0.4);
+      background: none;
+      color: var(--text);
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .ctl:active { background: rgba(90, 215, 255, 0.15); }
     /* ---- Quiz overlay ---- */
     #overlay {
       position: fixed;
@@ -123,7 +140,7 @@
       background: #04060c;
       color: var(--text);
       font-family: Consolas, monospace;
-      font-size: 15px;
+      font-size: 16px; /* below 16px iOS zooms the page when the input focuses */
       outline: none;
     }
     .quiz-row input:focus { border-color: var(--neon); box-shadow: 0 0 10px rgba(57,255,136,.3); }
@@ -176,7 +193,11 @@
   <div id="stage">
     <h1>Neon Serpent</h1>
     <div id="frame"><canvas id="game" width="800" height="600"></canvas></div>
-    <div id="help">ARROWS / WASD move · P pause · M mute · R restart — die and a coding problem can buy your life back</div>
+    <div id="help">
+      <span id="help-text">SWIPE or ARROWS/WASD steer · tap or P pause — die and a coding problem can buy your life back</span>
+      <button id="btn-mute" class="ctl" type="button" title="mute (M)">🔊</button>
+      <button id="btn-restart" class="ctl" type="button" title="restart (R)">↻</button>
+    </div>
   </div>
   <div id="overlay"></div>
   <script src="game.js"></script>

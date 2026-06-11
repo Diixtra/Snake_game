@@ -288,13 +288,13 @@ export class Game {
     this.fx.render(ctx);
     this.drawHud(ctx);
 
-    if (this.state === 'title') this.drawCenterText(ctx, 'NEON SERPENT', 'press an arrow key to slither');
-    if (this.state === 'paused') this.drawCenterText(ctx, 'PAUSED', 'press P to resume');
+    if (this.state === 'title') this.drawCenterText(ctx, 'NEON SERPENT', 'swipe or press an arrow key to slither');
+    if (this.state === 'paused') this.drawCenterText(ctx, 'PAUSED', 'tap or press P to resume');
     if (this.state === 'gameover')
       this.drawCenterText(
         ctx,
         `GAME OVER — ${this.score}`,
-        `${this.revives} extra ${this.revives === 1 ? 'life' : 'lives'} earned by code · press R to restart`
+        `${this.revives} extra ${this.revives === 1 ? 'life' : 'lives'} earned by code · tap or press R to restart`
       );
     ctx.restore();
   }

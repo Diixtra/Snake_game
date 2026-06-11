@@ -7,7 +7,9 @@ Crossplane compositions.
 
 ## Play
 
-Arrows / WASD to move · `P` pause · `M` mute · `R` restart.
+Desktop: arrows / WASD to move · `P` pause · `M` mute · `R` restart.
+Mobile: swipe to steer (chain turns without lifting your finger) · tap to
+start, pause, or restart · on-screen mute/restart buttons.
 
 ## Features
 
@@ -72,8 +74,10 @@ See [`deploy/README.md`](deploy/README.md). The forge's **existing**
 compositions cover both paths — commit one resource into its GitOps tree and
 Flux + Crossplane do the rest:
 
+- [`deploy/cloudflare-pages.yaml`](deploy/cloudflare-pages.yaml)
+  **(recommended)** — `XCloudflarePages`: static edge hosting built straight
+  from this repo (`cd web && npm ci && npm run build` → `web/dist`),
+  always-warm by nature.
 - [`deploy/cloud-run-app.yaml`](deploy/cloud-run-app.yaml) — `XCloudRunApp`
-  with `minInstances: 1`: **warm**, no cold starts, still scales up under load.
-- [`deploy/cloudflare-pages.yaml`](deploy/cloudflare-pages.yaml) —
-  `XCloudflarePages`: static edge hosting built straight from this repo
-  (`cd web && npm ci && npm run build` → `web/dist`), always-warm by nature.
+  with `minInstances: 1` (**warm**, no cold starts); for when the game grows
+  a backend.
