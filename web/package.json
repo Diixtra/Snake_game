@@ -1,0 +1,15 @@
+{
+  "name": "neon-serpent",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Neon Serpent — browser snake game with power-ups and coding-quiz revivals",
+  "scripts": {
+    "build": "rm -rf dist && mkdir -p dist && cp index.html dist/ && esbuild src/main.ts --bundle --minify --sourcemap --outfile=dist/game.js",
+    "dev": "mkdir -p dist && cp index.html dist/ && esbuild src/main.ts --bundle --outfile=dist/game.js --watch --servedir=dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "typescript": "^5.6.0"
+  }
+}

@@ -1,0 +1,21 @@
+# Warm deployment via the forge's existing XCloudRunApp composition.
+# minInstances: 1 is the warm knob — Cloud Run keeps one instance hot at all
+# times (no cold starts) while still scaling up under load.
+#
+# Commit this to the forge (e.g. apps/base/snake-game/) and Flux + Crossplane
+# reconcile the rest. The container image is built from the Dockerfile in this
+# repo by the forge's existing build pipeline; imageTag pins which build runs.
+apiVersion: diixtra.io/v1alpha1
+kind: XCloudRunApp
+metadata:
+  name: snake-game
+  namespace: apps # adjust to the forge's app namespace convention
+spec:
+  appName: snake-game
+  region: europe-west3
+  domain: diixtra.com
+  apiSubdomain: snake # serves at snake.diixtra.com
+  imageTag: latest
+  port: 8080 # nginx in the image listens here; /healthz for probes
+  minInstances: 1 # warm: never scale to zero
+  maxInstances: 3

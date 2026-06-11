@@ -1,0 +1,21 @@
+# Alternative: serve the game as a static site on Cloudflare Pages using the
+# forge's existing XCloudflarePages composition. Pages builds straight from
+# the GitHub repo (no image, no CI workflow needed) and edge caching means
+# it is effectively always warm.
+#
+# Note: the composition expects githubRepo to live under the Diixtra org —
+# mirror or provision this repo there first (the forge's XRepository /
+# Port "Create Repository" action does exactly that).
+apiVersion: diixtra.io/v1alpha1
+kind: XCloudflarePages
+metadata:
+  name: snake-game
+  namespace: apps # adjust to the forge's app namespace convention
+spec:
+  appName: snake-game
+  domain: diixtra.com
+  githubRepo: snake-game
+  buildCommand: cd web && npm ci && npm run build
+  buildOutputDir: web/dist
+  nodeVersion: "22"
+  productionBranch: main
