@@ -2,8 +2,8 @@
 
 The original pygame snake (now in [`legacy/`](legacy/)) reborn as a
 TypeScript + HTML5 Canvas game, containerized and ready to run **warm** on the
-[Diixtra forge](https://github.com/Diixtra/diixtra-forge) via a Crossplane
-`WarmWebApp` claim.
+[Diixtra forge](https://github.com/Diixtra/diixtra-forge) via its existing
+Crossplane compositions.
 
 ## Play
 
@@ -63,29 +63,17 @@ docker run -p 8080:8080 snake-game
 # open http://localhost:8080  (health: /healthz)
 ```
 
-Non-root nginx-alpine serving the static bundle; CI
-(`.github/workflows/build-image.yaml`) publishes
-`ghcr.io/jameskazie/snake-game` on pushes to `main`.
+Non-root nginx-alpine serving the static bundle on port 8080 with a
+`/healthz` endpoint — this is the image Cloud Run runs.
 
 ## Deploy to the cloud (Diixtra forge, warm, Crossplane)
 
-See [`deploy/README.md`](deploy/README.md). Short version: a
-`WarmWebApp` XRD/Composition (in the forge's `diixtra.io/v1alpha1` style)
-composes the Deployment, Service, Traefik IngressRoute, and a KEDA scaler with
-a **warm replica floor** — the game can scale up under load but never scales
-to zero, so it always loads instantly:
+See [`deploy/README.md`](deploy/README.md). The forge's **existing**
+compositions cover both paths — commit one resource into its GitOps tree and
+Flux + Crossplane do the rest:
 
-```yaml
-apiVersion: diixtra.io/v1alpha1
-kind: WarmWebApp
-metadata:
-  name: snake-game
-  namespace: apps
-spec:
-  image: ghcr.io/jameskazie/snake-game:latest
-  host: snake.diixtra.com
-  warmReplicas: 1
-```
-
-A plain kustomize variant matching the forge's `apps/base` + `apps/homelab`
-layout is included as a fallback.
+- [`deploy/cloud-run-app.yaml`](deploy/cloud-run-app.yaml) — `XCloudRunApp`
+  with `minInstances: 1`: **warm**, no cold starts, still scales up under load.
+- [`deploy/cloudflare-pages.yaml`](deploy/cloudflare-pages.yaml) —
+  `XCloudflarePages`: static edge hosting built straight from this repo
+  (`cd web && npm ci && npm run build` → `web/dist`), always-warm by nature.
