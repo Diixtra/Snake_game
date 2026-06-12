@@ -19,6 +19,31 @@ The composition expects the GitHub repo under the **Diixtra org**; mirror or
 provision it there first (the forge's XRepository / Port "Create Repository"
 action handles that).
 
+### Step-by-step checklist
+
+1. **Move this repo**: transfer to the Diixtra org (Settings → Danger Zone →
+   Transfer), ideally renamed `snake-game` to match `githubRepo` below. Make
+   sure the game code is merged to `main` — Pages builds `productionBranch`.
+2. **Cloudflare access**: Diixtra org → Settings → GitHub Apps → "Cloudflare
+   Workers and Pages" → grant repository access to the new repo.
+3. **In a diixtra-forge branch**: find an existing app to copy conventions
+   from (`grep -rl "kind: XCloudflarePages" apps/ clusters/`), then create
+   `apps/base/snake-game/` containing `cloudflare-pages.yaml` (this file,
+   with real `domain` and `metadata.namespace` values) plus a
+   `kustomization.yaml` listing it.
+4. **Register it**: add `- snake-game` to `apps/base/kustomization.yaml`,
+   and mirror whatever the neighbour app does in the `apps/homelab/` overlay.
+5. **PR → merge**, then `flux reconcile kustomization apps --with-source`.
+6. **Verify**: `kubectl get xcloudflarepages -A` goes Ready/Synced
+   (`crossplane beta trace xcloudflarepages snake-game` if not); first build
+   appears under Workers & Pages in the Cloudflare dashboard (push a commit
+   to `main` if none ran); then open the URL — and thumb-test the swipe
+   controls on a phone.
+
+Gotchas: `githubRepo` must match the repo name character-for-character, and
+hostnames derive from `domain` + `subdomain`/`wwwSubdomain` — check a working
+app's values if the resulting hostname surprises you.
+
 ## Option B — Cloud Run, warm (`cloud-run-app.yaml`)
 
 Keep this in the back pocket for when the game grows a backend (leaderboard,
