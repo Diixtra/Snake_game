@@ -14,7 +14,7 @@ metadata:
 spec:
   appName: snake-game
   domain: diixtra.com
-  githubRepo: snake-game
+  githubRepo: Snake_game
   buildCommand: cd web && npm ci && npm run build
   buildOutputDir: web/dist
   nodeVersion: "22"
